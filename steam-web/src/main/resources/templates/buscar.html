@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Pesquisar Jogos</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <style>
+
+        .card{
+            transition:0.25s;
+            border:none;
+        }
+
+        .card:hover{
+
+            transform:translateY(-6px);
+
+            box-shadow:0 10px 25px rgba(0,0,0,.25);
+
+        }
+
+        .card img{
+
+            height:170px;
+
+            object-fit:cover;
+
+        }
+
+        .titulo{
+
+            min-height:55px;
+
+            font-weight:bold;
+
+        }
+
+    </style>
+
+</head>
+
+<body class="bg-light">
+
+<div th:replace="fragments/navbar :: navbar"></div>
+
+<div class="container mt-5">
+
+    <h2>Resultado da pesquisa</h2>
+
+    <p>
+
+        Pesquisa por:
+
+        <b th:text="${nomePesquisado}"></b>
+
+    </p>
+
+    <p class="text-muted">
+
+        Encontrados
+
+        <strong th:text="${totalResultados}"></strong>
+
+        jogo(s).
+
+    </p>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <form action="/buscar"
+              method="get"
+              class="d-flex align-items-center">
+
+            <input type="hidden"
+                   name="nome"
+                   th:value="${nomePesquisado}">
+
+            <label class="me-2">
+
+                Resultados por página:
+
+            </label>
+
+            <select name="tamanho"
+                    class="form-select"
+                    onchange="this.form.submit()">
+
+                <option value="12"
+                        th:selected="${tamanho==12}">
+
+                    12
+
+                </option>
+
+                <option value="24"
+                        th:selected="${tamanho==24}">
+
+                    24
+
+                </option>
+
+                <option value="48"
+                        th:selected="${tamanho==48}">
+
+                    48
+
+                </option>
+
+                <option value="96"
+                        th:selected="${tamanho==96}">
+
+                    96
+
+                </option>
+
+            </select>
+
+        </form>
+
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-lg-4 col-md-6"
+             th:each="jogo : ${lista}">
+
+            <div class="card shadow-sm h-100">
+
+                <img class="card-img-top"
+                     th:src="'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/' + ${jogo.appId} + '/header.jpg'"
+                     th:alt="${jogo.nome}">
+
+                <div class="card-body d-flex flex-column">
+
+                    <h5 class="titulo"
+                        th:text="${jogo.nome}">
+                    </h5>
+
+                    <p class="mb-2">
+
+                        <strong>Preço:</strong>
+
+                        <span th:text="${jogo.preco == 0 ? 'Gratuito' : 'R$ ' + #numbers.formatDecimal(jogo.preco,1,2)}">
+                        </span>
+
+                    </p>
+
+                    <p class="mb-3">
+
+                        <strong>Reviews:</strong>
+
+                        <span th:text="${#numbers.formatInteger(jogo.totalReviews,1,'POINT')}">
+                        </span>
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <nav class="mt-5">
+
+        <ul class="pagination justify-content-center">
+
+            <li class="page-item"
+                th:classappend="${pagina == 0} ? ' disabled'">
+
+                <a class="page-link"
+                   th:href="@{/buscar(
+                    nome=${nomePesquisado},
+                    pagina=${pagina-1},
+                    tamanho=${tamanho})}">
+
+                    ←
+
+                </a>
+
+            </li>
+
+            <li class="page-item"
+                th:if="${inicio > 0}">
+
+                <a class="page-link"
+                   th:href="@{/buscar(
+                    nome=${nomePesquisado},
+                    pagina=0,
+                    tamanho=${tamanho})}">
+
+                    1
+
+                </a>
+
+            </li>
+
+            <li class="page-item disabled"
+                th:if="${inicio > 1}">
+
+                <span class="page-link">...</span>
+
+            </li>
+
+            <li class="page-item"
+                th:each="i : ${paginas}"
+                th:classappend="${i == pagina} ? ' active'">
+
+                <a class="page-link"
+                   th:text="${i+1}"
+                   th:href="@{/buscar(
+                    nome=${nomePesquisado},
+                    pagina=${i},
+                    tamanho=${tamanho})}">
+                </a>
+
+            </li>
+
+            <li class="page-item disabled"
+                th:if="${fim < totalPaginas-2}">
+
+                <span class="page-link">...</span>
+
+            </li>
+
+            <li class="page-item"
+                th:if="${fim < totalPaginas-1}">
+
+                <a class="page-link"
+                   th:text="${totalPaginas}"
+                   th:href="@{/buscar(
+                    nome=${nomePesquisado},
+                    pagina=${totalPaginas-1},
+                    tamanho=${tamanho})}">
+
+                </a>
+
+            </li>
+
+            <li class="page-item"
+                th:classappend="${pagina == totalPaginas-1} ? ' disabled'">
+
+                <a class="page-link"
+                   th:href="@{/buscar(
+                    nome=${nomePesquisado},
+                    pagina=${pagina+1},
+                    tamanho=${tamanho})}">
+
+                    →
+
+                </a>
+
+            </li>
+
+        </ul>
+
+    </nav>
+
+    <div class="mt-4">
+
+        <a href="/"
+           class="btn btn-secondary">
+
+            ← Voltar
+
+        </a>
+
+    </div>
+
+</div>
+
+</body>
+
+</html>
